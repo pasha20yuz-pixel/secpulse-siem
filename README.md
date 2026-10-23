@@ -1,3 +1,4 @@
+[![Tests](https://github.com/pasha20yuz-pixel/secpulse-siem/actions/workflows/tests.yml/badge.svg)](https://github.com/pasha20yuz-pixel/secpulse-siem/actions/workflows/tests.yml)
 # SecPulse SIEM
 
 **SecPulse SIEM** is an educational security-monitoring prototype built with Python, FastAPI, SQLAlchemy, SQLite, WebSocket, and a lightweight browser dashboard. It ingests synthetic authentication events, applies heuristic detection rules, stores generated alerts, and exports alert history as CSV.
