@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecPulse SIEM - Live Dashboard</title>
+    <!-- Подключаем Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans">
+
+    <!-- Навигационная панель -->
+    <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                <span class="text-xl font-bold tracking-wider text-white">SecPulse <span class="text-blue-500">SIEM</span></span>
+            </div>
+            <div id="connection-status" class="text-xs font-medium text-slate-400 bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700/50">
+                Статус WebSocket: Подключение...
+            </div>
+        </div>
+    </header>
+
+    <!-- Основной контент -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Верхние метрики (KPI) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-lg">
+                <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1">Всего алертов (загружено)</p>
+                <h3 id="total-alerts" class="text-3xl font-extrabold text-white">0</h3>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-lg">
+                <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1">Критические угрозы (HIGH)</p>
+                <h3 id="high-alerts" class="text-3xl font-extrabold text-red-500">0</h3>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-lg">
+                <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1">Последняя активность</p>
+                <h3 id="last-event-time" class="text-lg font-bold text-slate-300 truncate">Ожидание событий...</h3>
+            </div>
+        </div>
+
+        <!-- Панель инструментов: Поиск, Экспорт и Аналитика Top IP -->
+        <div class="mb-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Поиск и фильтры (2 колонки) -->
+            <div class="lg:col-span-2 bg-slate-900/50 p-4 rounded-xl border border-slate-800 flex flex-col justify-between gap-4">
+                <div class="flex flex-col sm:flex-row gap-4 items-center justify-between">
+                    <!-- Универсальный поиск -->
+                    <div class="w-full sm:w-80">
+                        <input type="text" id="ip-search-input" placeholder="🔍 Поиск (IP, юзер, тип, high/med)..." 
+                            class="w-full bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-blue-500 placeholder-slate-500">
+                    </div>
+
+                    <!-- Кнопка экспорта отчета в CSV -->
+                    <button id="export-csv-button" 
+                        class="w-full sm:w-auto px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg transition shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2">
+                        📥 Скачать CSV отчет
+                    </button>
+                </div>
+
+                <!-- Кнопки фильтрации по типу -->
+                <div class="flex flex-wrap gap-2">
+                    <button id="filter-all" class="px-4 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white transition shadow-lg shadow-blue-500/20">Все типы</button>
+                    <button id="filter-brute" class="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 transition">Brute Force</button>
+                    <button id="filter-spray" class="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 transition">Password Spraying</button>
+                </div>
+            </div>
+
+            <!-- Карточка: Топ атакующих IP -->
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col justify-between">
+                <h4 class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-2">🔥 Топ атакующих IP</h4>
+                <div id="top-ips-list" class="space-y-1.5 text-xs font-mono text-slate-300 overflow-y-auto max-h-24">
+                    <span class="text-slate-500">Сбор аналитики...</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Таблица инцидентов -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+                <h2 class="text-base font-bold text-white tracking-wide">Поток инцидентов безопасности (Real-Time Stream)</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-950/60 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-800">
+                            <th class="px-6 py-3.5 font-semibold">Время</th>
+                            <th class="px-6 py-3.5 font-semibold">Тип угрозы</th>
+                            <th class="px-6 py-3.5 font-semibold">Уровень</th>
+                            <th class="px-6 py-3.5 font-semibold">Пользователь</th>
+                            <th class="px-6 py-3.5 font-semibold">IP-адрес</th>
+                            <th class="px-6 py-3.5 font-semibold">Попытки</th>
+                        </tr>
+                    </thead>
+                    <tbody id="alerts-table-body" class="divide-y divide-slate-800/50 text-sm">
+                        <tr id="empty-row">
+                            <td colspan="6" class="px-6 py-8 text-center text-slate-500">
+                                Ожидание входящих логов... Запустите симулятор или отправьте лог через API.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

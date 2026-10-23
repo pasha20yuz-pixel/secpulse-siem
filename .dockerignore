@@ -1,0 +1,14 @@
+**/.venv/
+**/venv/
+**/__pycache__/
+**/.pytest_cache/
+**/.ruff_cache/
+**/*.py[cod]
+**/*.db
+**/*.sqlite
+**/*.sqlite3
+**/*.log
+.git/
+.env
+.env.*
+!.env.example
